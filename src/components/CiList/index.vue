@@ -1,107 +1,76 @@
 <template>
   <div class="cinema_body">
     <ul>
-      <li>
+      <li v-for="list in clList" :key="list.id">
         <div>
-          <span>大地影院(澳东世纪店)</span>
+          <span>{{list.nm}}</span>
           <span class="q">
-            <span class="price">22.9</span> 元起
+            <span class="price">{{list.sellPrice}}</span> 元起
           </span>
         </div>
         <div class="address">
-          <span>金州区大连经济技术开发区澳东世纪3层</span>
-          <span>1763.5km</span>
+          <span>{{list.addr}}</span>
+          <span>{{list.distance}}</span>
         </div>
         <div class="card">
-          <div>小吃</div>
-          <div>折扣卡</div>
-        </div>
-      </li>
-      <li>
-        <div>
-          <span>大地影院(澳东世纪店)</span>
-          <span class="q">
-            <span class="price">22.9</span> 元起
-          </span>
-        </div>
-        <div class="address">
-          <span>金州区大连经济技术开发区澳东世纪3层</span>
-          <span>1763.5km</span>
-        </div>
-        <div class="card">
-          <div>小吃</div>
-          <div>折扣卡</div>
-        </div>
-      </li>
-      <li>
-        <div>
-          <span>大地影院(澳东世纪店)</span>
-          <span class="q">
-            <span class="price">22.9</span> 元起
-          </span>
-        </div>
-        <div class="address">
-          <span>金州区大连经济技术开发区澳东世纪3层</span>
-          <span>1763.5km</span>
-        </div>
-        <div class="card">
-          <div>小吃</div>
-          <div>折扣卡</div>
-        </div>
-      </li>
-      <li>
-        <div>
-          <span>大地影院(澳东世纪店)</span>
-          <span class="q">
-            <span class="price">22.9</span> 元起
-          </span>
-        </div>
-        <div class="address">
-          <span>金州区大连经济技术开发区澳东世纪3层</span>
-          <span>1763.5km</span>
-        </div>
-        <div class="card">
-          <div>小吃</div>
-          <div>折扣卡</div>
-        </div>
-      </li>
-      <li>
-        <div>
-          <span>大地影院(澳东世纪店)</span>
-          <span class="q">
-            <span class="price">22.9</span> 元起
-          </span>
-        </div>
-        <div class="address">
-          <span>金州区大连经济技术开发区澳东世纪3层</span>
-          <span>1763.5km</span>
-        </div>
-        <div class="card">
-          <div>小吃</div>
-          <div>折扣卡</div>
-        </div>
-      </li>
-      <li>
-        <div>
-          <span>大地影院(澳东世纪店)</span>
-          <span class="q">
-            <span class="price">22.9</span> 元起
-          </span>
-        </div>
-        <div class="address">
-          <span>金州区大连经济技术开发区澳东世纪3层</span>
-          <span>1763.5km</span>
-        </div>
-        <div class="card">
-          <div>小吃</div>
-          <div>折扣卡</div>
+          <div
+            v-for="(num,index) in list.tag"
+            v-if="num === 1"
+            :class="index | classCard"
+            :key="index"
+          >{{index | formarCard}}</div>
         </div>
       </li>
     </ul>
   </div>
 </template>
 <script>
-export default {};
+export default {
+  name: "CiList",
+  data() {
+    return {
+      clList: []
+    };
+  },
+  mounted() {
+    this.axios.get(`/api/cinemaList?cityId=10`).then(res => {
+      let msg = res.data.msg;
+      if (msg) {
+        this.clList = res.data.data.cinemas;
+      }
+    });
+  },
+  filters: {
+    formarCard(key) {
+      let card = [
+        { key: "allowRefund", value: "改签" },
+        { key: "endorse", value: "退" },
+        { key: "sell", value: "折扣卡" },
+        { key: "snack", value: "小吃" }
+      ];
+      for (let i = 0; i < card.length; i++) {
+        if (key === card[i].key) {
+          return card[i].value;
+        }
+      }
+      return "";
+    },
+    classCard(key) {
+      let card = [
+        { key: "allowRefund", value: "bl" },
+        { key: "endorse", value: "bl" },
+        { key: "sell", value: "or" },
+        { key: "snack", value: "or" }
+      ];
+      for (let i = 0; i < card.length; i++) {
+        if (key === card[i].key) {
+          return card[i].value;
+        }
+      }
+      return "";
+    }
+  }
+};
 </script>
 <style scoped>
 #content .cinema_body {
@@ -128,6 +97,16 @@ export default {};
 .cinema_body .address {
   font-size: 13px;
   color: #666;
+  height: 20px;
+  overflow: hidden;
+}
+.cinema_body .address span:first-child {
+  width: 80%;
+  height: 20px;
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .cinema_body .address span:nth-of-type(2) {
   float: right;
