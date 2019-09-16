@@ -4,7 +4,7 @@
     <div id="content">
       <div class="movie_menu">
         <router-link class="city_name" tag="div" to="/movie/city">
-          <span>大连</span>
+          <span>{{$store.state.city.nm}}</span>
           <i class="iconfont icon-lower-triangle"></i>
         </router-link>
         <div class="hot_swtich">
@@ -26,26 +26,104 @@
 <script>
 import Header from "@/components/Header";
 import Tabbar from "@/components/TabBar";
+import { messageBox } from "@/components/js";
 export default {
   name: "Movie",
   components: {
     Header,
     Tabbar
+  },
+  mounted() {
+    setTimeout(() => {
+      this.axios.get("/api/getLocation").then(res => {
+        let msg = res.data.msg;
+        if (msg === "ok") {
+          let nm = res.data.data.nm;
+          let id = res.data.data.id;
+          // if (id === JSON.parse(localStorage.getItem("nowId"))) {
+          //   return;
+          // }
+          if (id == this.$store.state.city.id) {
+            return;
+          }
+          messageBox({
+            title: "定位",
+            content: nm,
+            cancel: "取消",
+            ok: "切换定位",
+            handleOk() {
+              localStorage.setItem("nowNm", nm);
+              localStorage.setItem("nowId", id);
+              location.reload();
+            }
+          });
+        }
+      });
+    }, 3000);
   }
 };
 </script>
 <style scoped>
-#content .movie_menu{ width: 100%; height: 45px; border-bottom:1px solid #e6e6e6; display: flex; justify-content:space-between; align-items:center; background:white; z-index:10;}
-.movie_menu .city_name{ margin-left: 20px; height:100%; line-height: 45px;}
-.movie_menu .city_name.active{ color: #ef4238; border-bottom: 2px #ef4238 solid;}
-.movie_menu .city_name.router-link-active{ color: #ef4238; border-bottom: 2px #ef4238 solid;}
-.movie_menu .hot_swtich{ display: flex; height:100%; line-height: 45px;}
-.movie_menu .hot_item{ font-size: 15px; color:#666; width:80px; text-align:center; margin:0 12px; font-weight:700;}
-.movie_menu .hot_item.active{ color: #ef4238; border-bottom: 2px #ef4238 solid;}
-.movie_menu .hot_item.router-link-active{ color: #ef4238; border-bottom: 2px #ef4238 solid;}
-.movie_menu .search_entry{ margin-right:20px; height:100%; line-height: 45px;}
-.movie_menu .search_entry.active{ color: #ef4238; border-bottom: 2px #ef4238 solid;}
-.movie_menu .search_entry.router-link-active{ color: #ef4238; border-bottom: 2px #ef4238 solid;}
-.movie_menu .search_entry i{  font-size:24px; color:red;}
+#content .movie_menu {
+  width: 100%;
+  height: 45px;
+  border-bottom: 1px solid #e6e6e6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  z-index: 10;
+}
+.movie_menu .city_name {
+  margin-left: 20px;
+  height: 100%;
+  line-height: 45px;
+}
+.movie_menu .city_name.active {
+  color: #ef4238;
+  border-bottom: 2px #ef4238 solid;
+}
+.movie_menu .city_name.router-link-active {
+  color: #ef4238;
+  border-bottom: 2px #ef4238 solid;
+}
+.movie_menu .hot_swtich {
+  display: flex;
+  height: 100%;
+  line-height: 45px;
+}
+.movie_menu .hot_item {
+  font-size: 15px;
+  color: #666;
+  width: 80px;
+  text-align: center;
+  margin: 0 12px;
+  font-weight: 700;
+}
+.movie_menu .hot_item.active {
+  color: #ef4238;
+  border-bottom: 2px #ef4238 solid;
+}
+.movie_menu .hot_item.router-link-active {
+  color: #ef4238;
+  border-bottom: 2px #ef4238 solid;
+}
+.movie_menu .search_entry {
+  margin-right: 20px;
+  height: 100%;
+  line-height: 45px;
+}
+.movie_menu .search_entry.active {
+  color: #ef4238;
+  border-bottom: 2px #ef4238 solid;
+}
+.movie_menu .search_entry.router-link-active {
+  color: #ef4238;
+  border-bottom: 2px #ef4238 solid;
+}
+.movie_menu .search_entry i {
+  font-size: 24px;
+  color: red;
+}
 </style>
 

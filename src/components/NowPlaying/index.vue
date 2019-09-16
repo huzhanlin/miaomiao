@@ -1,26 +1,30 @@
 <template>
   <div class="movie_body">
-    <ul>
-      <li v-for="list in movieList" :key="list.id">
-        <div class="pic_show">
-          <img :src="list.img | setWH('128.180')" />
-        </div>
-        <div class="info_list">
-          <h2>
-            {{list.nm}}
-            <img v-if="list.version" src="@/assets/maxs.png" alt />
-          </h2>
+    <loading v-if="isloading"></loading>
+    <Scroller v-else :handleToScroll="handleToScroll" :handleToTouchEnd="handleToTouchEnd">
+      <ul>
+        {{pullDownMsg}}
+        <li v-for="list in movieList" :key="list.id">
+          <div class="pic_show" @tap="handleToDetail">
+            <img :src="list.img | setWH('128.180')" />
+          </div>
+          <div class="info_list">
+            <h2>
+              {{list.nm}}
+              <img v-if="list.version" src="@/assets/maxs.png" alt />
+            </h2>
 
-          <p>
-            观众评
-            <span class="grade">{{list.sc}}</span>
-          </p>
-          <p>主演：{{list.star}}</p>
-          <p>{{list.showInfo}}</p>
-        </div>
-        <div class="btn_mall">购票</div>
-      </li>
-    </ul>
+            <p>
+              观众评
+              <span class="grade">{{list.sc}}</span>
+            </p>
+            <p>主演：{{list.star}}</p>
+            <p>{{list.showInfo}}</p>
+          </div>
+          <div class="btn_mall">购票</div>
+        </li>
+      </ul>
+    </Scroller>
   </div>
 </template>
 
@@ -29,16 +33,51 @@ export default {
   name: "Nowplaying",
   data() {
     return {
-      movieList: []
+      movieList: [],
+      pullDownMsg: "",
+      isloading: true,
+      prevCityId: -1
     };
   },
-  mounted() {
-    this.axios.get("/api/movieOnInfoList?cityId=10").then(res => {
-      let msg = res.data.msg;
-      if (msg === "ok") {
-        this.movieList = res.data.data.movieList;
+  activated() {
+    let id = this.$store.state.city.id;
+    if (this.prevCityId === id) {
+      return;
+    } else {
+      this.isloading = true;
+      this.axios.get(`/api/movieOnInfoList?cityId=${id}`).then(res => {
+        let msg = res.data.msg;
+        if (msg === "ok") {
+          this.movieList = res.data.data.movieList;
+          this.isloading = false;
+          this.prevCityId = id;
+        }
+      });
+    }
+  },
+  methods: {
+    handleToDetail() {
+      console.log(123);
+    },
+    handleToScroll(pos) {
+      if (pos.y > 30) {
+        this.pullDownMsg = "正在更新中";
       }
-    });
+    },
+    handleToTouchEnd(pos) {
+      if (pos.y > 30) {
+        this.axios.get("/api/movieOnInfoList?cityId=11").then(res => {
+          let msg = res.data.msg;
+          if (msg === "ok") {
+            this.pullDownMsg = "更新成功";
+            this.movieList = res.data.data.movieList;
+          }
+        });
+      }
+      setTimeout(() => {
+        this.pullDownMsg = "";
+      }, 1000);
+    }
   }
 };
 </script>

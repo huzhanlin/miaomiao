@@ -48,10 +48,11 @@ export default {
     message() {
       let kw = this.message;
       let that = this;
+      let id = this.$store.state.city.id;
       if (kw) {
         this.cancelRequest();
         this.axios
-          .get(`/api/searchList?cityId=10&kw=${kw}`, {
+          .get(`/api/searchList?cityId=${id}&kw=${kw}`, {
             cancelToken: new this.axios.CancelToken(function(c) {
               that.source = c;
             })
