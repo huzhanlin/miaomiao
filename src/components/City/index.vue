@@ -1,20 +1,29 @@
 <template>
   <div class="city_body">
     <div class="city_list">
-      <div class="city_hot">
-        <h2>热门城市</h2>
-        <ul class="clearfix">
-          <li v-for="hot in hotCity" :key="hot.id">{{hot.nm}}</li>
-        </ul>
-      </div>
-      <div class="city_sort" ref="city">
-        <div v-for="list in cityList" :key="list.id">
-          <h2>{{list.index}}</h2>
-          <ul>
-            <li v-for="nm in list.list" :key="nm.id">{{nm.nm}}</li>
-          </ul>
+      <loading v-if="isLoading"></loading>
+      <Scroller v-else ref="city_List">
+        <div>
+          <div class="city_hot">
+            <h2>热门城市</h2>
+            <ul class="clearfix">
+              <li
+                v-for="hot in hotCity"
+                :key="hot.id"
+                @tap="handleToCity(hot.nm,hot.id)"
+              >{{hot.nm}}</li>
+            </ul>
+          </div>
+          <div class="city_sort" ref="city">
+            <div v-for="list in cityList" :key="list.id">
+              <h2>{{list.index}}</h2>
+              <ul>
+                <li v-for="nm in list.list" :key="nm.id" @tap="handleToCity(nm.nm,nm.id)">{{nm.nm}}</li>
+              </ul>
+            </div>
+          </div>
         </div>
-      </div>
+      </Scroller>
     </div>
     <div class="city_index">
       <ul>
@@ -31,20 +40,32 @@
 export default {
   name: "City",
   mounted() {
-    this.axios.get("/api/cityList").then(res => {
-      let msg = res.data.msg;
-      if (msg === "ok") {
-        let cities = res.data.data.cities;
-        let { cityList, hotCity } = this.formatCityList(cities);
-        this.cityList = cityList;
-        this.hotCity = hotCity;
-      }
-    });
+    let getcityList = localStorage.getItem("cityList");
+    let gethotCity = localStorage.getItem("hotCity");
+    if (getcityList && gethotCity) {
+      this.cityList = JSON.parse(getcityList);
+      this.hotCity = JSON.parse(gethotCity);
+      this.isLoading = false;
+    } else {
+      this.axios.get("/api/cityList").then(res => {
+        let msg = res.data.msg;
+        if (msg === "ok") {
+          let cities = res.data.data.cities;
+          let { cityList, hotCity } = this.formatCityList(cities);
+          this.cityList = cityList;
+          this.hotCity = hotCity;
+          this.isLoading = false;
+          localStorage.setItem("cityList", JSON.stringify(cityList));
+          localStorage.setItem("hotCity", JSON.stringify(hotCity));
+        }
+      });
+    }
   },
   data() {
     return {
       hotCity: [],
-      cityList: []
+      cityList: [],
+      isLoading: true
     };
   },
   methods: {
@@ -105,8 +126,15 @@ export default {
     },
     handleToIndex(index) {
       let city = this.$refs.city;
-      let h2 = city.getElementsByTagName('h2');
-      city.parentNode.scrollTop = h2[index].offsetTop;
+      let h2 = city.getElementsByTagName("h2");
+      // city.parentNode.scrollTop = h2[index].offsetTop;
+      this.$refs.city_List.toScrollTop(-h2[index].offsetTop);
+    },
+    handleToCity(nm, id) {
+      this.$store.commit("city/CITY_INFO", { nm, id });
+      localStorage.setItem("nowNm", nm);
+      localStorage.setItem("nowId", id);
+      this.$router.push("/movie/nowPlaying");
     }
   }
 };
@@ -131,7 +159,7 @@ export default {
   width: 0;
 }
 .city_body .city_hot {
-  margin-top: 20px;
+  padding-top: 20px;
 }
 .city_body .city_hot h2 {
   padding-left: 15px;

@@ -1,27 +1,30 @@
 <template>
   <div class="movie_body">
-    <ul>
-      <li v-for="list in soonList" :key="list.id">
-        <div class="pic_show">
-          <img :src="list.img | setWH('128.180')" />
-        </div>
-        <div class="info_list">
-          <h2>
-            {{list.nm}}
-            <img v-if="list.version" src="@/assets/maxs.png" alt />
-          </h2>
-          <p>
-            <span class="person">{{list.wish}}</span> 人想看
-          </p>
-          <p>主演：{{list.star}}</p>
-          <p>
-            <span v-if="list.showInfo">{{list.showInfo}}</span>
-            <span v-else>{{list.rt | addText(list.rt)}}</span>
-          </p>
-        </div>
-        <div class="btn_pre">预售</div>
-      </li>
-    </ul>
+    <loading v-if="isLoading"></loading>
+    <Scroller v-else>
+      <ul>
+        <li v-for="list in soonList" :key="list.id">
+          <div class="pic_show">
+            <img :src="list.img | setWH('128.180')" />
+          </div>
+          <div class="info_list">
+            <h2>
+              {{list.nm}}
+              <img v-if="list.version" src="@/assets/maxs.png" alt />
+            </h2>
+            <p>
+              <span class="person">{{list.wish}}</span> 人想看
+            </p>
+            <p>主演：{{list.star}}</p>
+            <p>
+              <span v-if="list.showInfo">{{list.showInfo}}</span>
+              <span v-else>{{list.rt | addText(list.rt)}}</span>
+            </p>
+          </div>
+          <div class="btn_pre">预售</div>
+        </li>
+      </ul>
+    </Scroller>
   </div>
 </template>
 
@@ -30,7 +33,9 @@ export default {
   name: "ComingSoon",
   data() {
     return {
-      soonList: ""
+      soonList: "",
+      isLoading: true,
+      prevCityId: -1
     };
   },
   filters: {
@@ -38,10 +43,18 @@ export default {
       return `${rt}上映`;
     }
   },
-  mounted() {
-    this.axios.get("/api/movieComingList?cityId=10").then(res => {
-      this.soonList = res.data.data.comingList;
-    });
+  activated() {
+    let id = this.$store.state.city.id;
+    if (this.prevCityId === id) {
+      return;
+    } else {
+      this.isLoading = true;
+      this.axios.get(`/api/movieComingList?cityId=${id}`).then(res => {
+        this.soonList = res.data.data.comingList;
+        this.isLoading = false;
+        this.prevCityId = id;
+      });
+    }
   }
 };
 </script>

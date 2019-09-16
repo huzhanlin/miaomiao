@@ -1,27 +1,30 @@
 <template>
   <div class="cinema_body">
-    <ul>
-      <li v-for="list in clList" :key="list.id">
-        <div>
-          <span>{{list.nm}}</span>
-          <span class="q">
-            <span class="price">{{list.sellPrice}}</span> 元起
-          </span>
-        </div>
-        <div class="address">
-          <span>{{list.addr}}</span>
-          <span>{{list.distance}}</span>
-        </div>
-        <div class="card">
-          <div
-            v-for="(num,index) in list.tag"
-            v-if="num === 1"
-            :class="index | classCard"
-            :key="index"
-          >{{index | formarCard}}</div>
-        </div>
-      </li>
-    </ul>
+    <loading v-if="isLoading"></loading>
+    <Scroller v-else>
+      <ul>
+        <li v-for="list in clList" :key="list.id">
+          <div>
+            <span>{{list.nm}}</span>
+            <span class="q">
+              <span class="price">{{list.sellPrice}}</span> 元起
+            </span>
+          </div>
+          <div class="address">
+            <span>{{list.addr}}</span>
+            <span>{{list.distance}}</span>
+          </div>
+          <div class="card">
+            <div
+              v-for="(num,index) in list.tag"
+              v-if="num === 1"
+              :class="index | classCard"
+              :key="index"
+            >{{index | formarCard}}</div>
+          </div>
+        </li>
+      </ul>
+    </Scroller>
   </div>
 </template>
 <script>
@@ -29,16 +32,26 @@ export default {
   name: "CiList",
   data() {
     return {
-      clList: []
+      clList: [],
+      isLoading: true,
+      prevCityId: -1
     };
   },
-  mounted() {
-    this.axios.get(`/api/cinemaList?cityId=10`).then(res => {
-      let msg = res.data.msg;
-      if (msg) {
-        this.clList = res.data.data.cinemas;
-      }
-    });
+  activated() {
+    let id = this.$store.state.city.id;
+    if (this.prevCityId === id) {
+      return;
+    } else {
+      this.isLoading = true;
+      this.axios.get(`/api/cinemaList?cityId=${id}`).then(res => {
+        let msg = res.data.msg;
+        if (msg === "ok") {
+          this.clList = res.data.data.cinemas;
+          this.isLoading = false;
+          this.prevCityId = id;
+        }
+      });
+    }
   },
   filters: {
     formarCard(key) {
